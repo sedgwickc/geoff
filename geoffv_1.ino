@@ -4,24 +4,27 @@
  *This program runs geoff, the (eventually) object avoiding robot
  */
  
- #include <Servo.h>
- #define ABACKWARD 3
- #define AFORWARD 5
- #define BFORWARD 6
- #define BBACKWARD 11
- #define ONTIME 1500
+#include <Servo.h>
+#include <"geoffSense.h">
+#include <"geoffMotor.h">
+
+#define ABACKWARD 3
+#define AFORWARD 5
+#define BFORWARD 6
+#define BBACKWARD 11
+#define ONTIME 1500
  
- Servo pan;
- Servo tilt;
- int rangePin = A0;
- int rangeValue = 0;
- int posTilt = 0;
- int posPan = 0;
- int object = 0;
- int time = ONTIME;
+Servo pan;
+Servo tilt;
+int rangePin = A0;
+int rangeValue = 0;
+int posTilt = 0;
+int posPan = 0;
+int object = 0;
+int time = ONTIME;
 
  
- void setup(){
+void setup(){
    pan.attach(4);
    tilt.attach(2);
    pinMode(AFORWARD, OUTPUT);
@@ -29,9 +32,9 @@
    pinMode(BFORWARD, OUTPUT);
    pinMode(BBACKWARD, OUTPUT);
    pinMode(rangePin, OUTPUT);
- }
+}
  
- void loop(){
+void loop(){
    //scan();
    test();
    /*object = scan();
@@ -45,12 +48,12 @@
    }
      */
  
- }
+}
  
  /* scans the environment for objects and returns 0 for object and 1 for no object
   * pans side to side and tilts when sensor facing forward to check for objects. 
   */
- int scan(){
+int scan(){
    int pp = 90;
    int pt = 0;
    
@@ -95,24 +98,24 @@
    pp = 90;
    tilt.write(pt);
    pan.write(pp);
- }
+}
  
  /* stopMotors()
   * args: none
   * stops both motors by sending LOW along bnoth pins for each motor.
   */
- void stopMotors(){
+void stopMotors(){
    digitalWrite(ABACKWARD, LOW);
    digitalWrite(AFORWARD, LOW);
    digitalWrite(BBACKWARD, LOW);
    digitalWrite(BFORWARD, LOW);
- }
+}
  
  /* forward(...)
   * args: int time -> lenght of time in ms that it move forward
   * sets both motors to move forward for the given time
   */
- void backward(int t){
+void backward(int t){
    
    stopMotors();
    
