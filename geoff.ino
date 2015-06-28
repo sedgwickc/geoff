@@ -67,32 +67,38 @@ void loop(){
   int dist = 0;
   int i;
 
-  for( i = 50; i < 140; i+=3 )
+  for( i = 50; i < 140; i+= 10 )
   {
     pan.write( i );
     dist = SerialCmd(); 
     while ( dist > 0 && dist <= 15)
     {
+      if( i < 95 ){
+        rotateLeft();
+      }
+      else{
+        rotateRight();
+      }      
       dist = SerialCmd(); 
-      backward();
-      delay(500);
-      turnRight();
-      delay(500);
+      delay(100);
     }
     forward();
   }
   
-  for( ; i >= 50; i-=3 )
+  for( ; i >= 50; i-= 10 )
   {
     pan.write( i );
     dist = SerialCmd();
     while ( dist > 0 && dist <= 15 )
     {
+      if( i < 95 ){
+        rotateLeft();
+      }
+      else{
+        rotateRight();
+      }
       dist = SerialCmd();
-      backward();
-      delay(500);
-      turnRight();
-      delay(500);
+      delay(100);
     }
     forward();
   }
@@ -198,4 +204,20 @@ void turnLeft(){
    
    digitalWrite(BFORWARD, LOW);
    digitalWrite(BBACKWARD, LOW);
+}
+
+void rotateLeft(){
+   digitalWrite(AFORWARD, HIGH);
+   digitalWrite(ABACKWARD, LOW); 
+  
+   digitalWrite(BFORWARD, LOW);
+   digitalWrite(BBACKWARD, HIGH); 
+}
+
+void rotateRight(){
+   digitalWrite(AFORWARD, LOW);
+   digitalWrite(ABACKWARD, HIGH); 
+  
+   digitalWrite(BFORWARD, HIGH);
+   digitalWrite(BBACKWARD, LOW); 
 }
