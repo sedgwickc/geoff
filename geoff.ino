@@ -1,6 +1,6 @@
 /*
  *Charles Sedgwick
- *This program combines panning with distance sensing
+ *Geoff is an object avoiding, orange object following robot.
  * Hardware:
  * - Arduino Uno R3
  * - cmdr shield by solarbotics
@@ -11,6 +11,8 @@
  */
  
 #include <Servo.h>
+#include <Wire.h>
+#include <PixyI2C.h>
 
 #define ABACKWARD 5
 #define AFORWARD 3
@@ -33,14 +35,7 @@ int numTones = 3;
 uint8_t EnDistCmd[4]={0x22, 0x00, 0x00, 0x22};    // Distance measure command
 uint8_t DistData[4];
 unsigned int DistValue=0;
-
-//Function prototypes
-uint16_t get_gp2d12 (uint16_t value);
-void stopMotors();
-void backward();
-void forward();
-void turnRight();
-void turnLeft();
+PixyI2C pixy;
 
 Servo pan;
 Servo tilt;
@@ -48,6 +43,7 @@ Servo tilt;
 void setup(){    
   
    Serial.begin (9600);
+   pixy.init();
    pinMode(AFORWARD, OUTPUT);
    pinMode(ABACKWARD, OUTPUT);
    pinMode(BFORWARD, OUTPUT);
@@ -70,15 +66,15 @@ void loop(){
   for( i = 50; i < 140; i+= 10 )
   {
     pan.write( i );
+    while( detectBlocks() )
+    {
+      stopMotors();
+      delay(20);
+    }
     dist = SerialCmd(); 
     while ( dist > 0 && dist <= 15)
     {
-      if( i < 95 ){
-        rotateLeft();
-      }
-      else{
-        rotateRight();
-      }      
+      avoidObject( dist, i ); 
       dist = SerialCmd(); 
       delay(100);
     }
@@ -88,16 +84,16 @@ void loop(){
   for( ; i >= 50; i-= 10 )
   {
     pan.write( i );
-    dist = SerialCmd();
-    while ( dist > 0 && dist <= 15 )
+    while ( detectBlocks() )
     {
-      if( i < 95 ){
-        rotateLeft();
-      }
-      else{
-        rotateRight();
-      }
-      dist = SerialCmd();
+      stopMotors();
+      delay(20);
+    }
+    dist = SerialCmd();
+    while ( dist > 0 && dist <= 15)
+    {
+      avoidObject( dist, i ); 
+      dist = SerialCmd(); 
       delay(100);
     }
     forward();
@@ -120,7 +116,6 @@ int SerialCmd()
    
    if (Serial.available() == 0 )
    {
-     Serial.println( "no data" );
      delay( DELAY );
      return 0;
    }
@@ -133,23 +128,43 @@ int SerialCmd()
      DistValue = DistData[1]<<8;
      DistValue = DistValue+DistData[2];
      if(DistValue>=45000){              // the reading is invalid.
-       Serial.println("Invalid");
        delay( DELAY );
        return 0;
      }
      else{
-      Serial.print("Distance=");
-      Serial.print(DistValue);
-      Serial.println("cm");
       delay( DELAY );
       return DistValue;
      }
   }
 }
 
+int detectBlocks(){
+  uint16_t blocks;
+  
+  blocks = pixy.getBlocks();
+  if (blocks)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+void avoidObject( int dist, int angle ){
+  if( angle < 95 ){
+    rotateLeft();
+  }
+  else
+  {
+    rotateRight();
+  }   
+}
+
  /* stopMotors()
   * args: none
-  * stops both motors by sending LOW along bnoth pins for each motor.
+  * stops both motors by sending LOW along both pins for each motor.
   */
 void stopMotors(){
    digitalWrite(ABACKWARD, LOW);
